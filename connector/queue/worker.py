@@ -34,6 +34,7 @@ import openerp
 from openerp.service.model import PG_CONCURRENCY_ERRORS_TO_RETRY
 from openerp.service import db
 from openerp.tools import config
+from openerp.addons.base.ir.ir_cron import BASE_VERSION
 from .queue import JobsQueue
 from ..session import ConnectorSessionHandler
 from .job import (OpenERPJobStorage,
@@ -272,7 +273,10 @@ class WorkerWatcher(threading.Thread):
                 try:
                     cr.execute("SELECT 1 FROM ir_module_module "
                                "WHERE name = %s "
-                               "AND state = %s", ('connector', 'installed'),
+                               "AND state = %s "
+                               "AND 1 = (SELECT 1 FROM ir_module_module "
+                               "WHERE name = %s AND latest_version = %s)",
+                               ('connector', 'installed', 'base', BASE_VERSION),
                                log_exceptions=False)
                 except ProgrammingError as err:
                     no_db_error = 'relation "ir_module_module" does not exist'
